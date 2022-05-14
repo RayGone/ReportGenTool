@@ -2,5 +2,6 @@ vendor
 Data
 Header Files
 ScriptFiles
-Regan.zip
+*.zip
 composer.*
+bootstrap*
