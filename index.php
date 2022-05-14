@@ -69,15 +69,15 @@
 
                 <br>
                 <div class='d-flex justify-content-center'>
-                    <button class='btn btn-sm btn-primary starter' onclick='run()'>Process</button>
+                    <button class='btn btn-md btn-primary starter' onclick='run()'>Process</button>
                 </div>
             </div>
         </div>
     </div>
 
     <div class='modal d-none'>
-        <div style='height:5vh;width:100vw'><span style='float:right;font-size:2em;color:red;cursor:pointer' onclick='closeModal()'>X&nbsp;&nbsp;&nbsp;&nbsp;</span></div>
-        <div class="row">
+        <div style='height:5vh;width:100vw'><span class='close-modal' style='float:right;font-size:2em;color:red;cursor:pointer' onclick='closeModal()'>X&nbsp;&nbsp;&nbsp;&nbsp;</span></div>
+        <div class="row loader">
             <div class="col-md-4 offset-4 text-center">
                 <div class="spinner-grow spinner-grow-xl text-info" style="width: 5rem; height: 5rem;" role="status"></div>
                 <div class="spinner-grow spinner-grow-xl text-info" style="width: 5rem; height: 5rem;" role="status"></div>
@@ -85,6 +85,13 @@
             </div>
             <div class='col-md-12 text-center'>
                 <span class='display-4 td'>Processing....</span>
+            </div>
+        </div>
+        <div class='row cs d-none'>
+            <div class='col-md-4 offset-4 text-center'>
+                <div class="alert alert-success display-6">
+                    Processing Complete.
+                </div>
             </div>
         </div>
         <div class='row'>
