@@ -187,7 +187,7 @@ function process(fObject, machine_id, pid) {
         
         if(files_to_process.length){
             setTimeout((pid) => {
-                p_el.children[3].innerHTML = (100/files_to_process.length).toFixed(2) + "%";
+                p_el.children[3].innerHTML = ((semaphore+1)*100/files_to_process.length).toFixed(2) + "%";
                 process(files_to_process.pop(),active_machine,pid)
             }, 50,pid);
         }
@@ -287,7 +287,7 @@ function run() {
                     <td>${active_machine}</td>
                     <td>${file.name}</td>
                     <td>0</td>
-                    <td>${(100/files_to_process.length).toFixed(2)}%</td>
+                    <td>${((semaphore+1)*100/files_to_process.length).toFixed(2)}%</td>
                 </tr>`;
     process(file,active_machine,active_machine);
 }
