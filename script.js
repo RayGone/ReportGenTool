@@ -198,6 +198,9 @@ function process(fObject, machine_id, pid) {
             p_el.children[3].innerHTML = 'Complete';
             p_el.children[1].innerHTML = '-----------------';
             
+            //download the file
+            downloadCSV(csv_string, active_machine+`_${count}_`+new Date().getTime()+"_outputfile.csv");
+
             // re-init variables
             semaphore = 0;
             processed_data = [];
@@ -205,10 +208,7 @@ function process(fObject, machine_id, pid) {
             active_machine = false;
             console.log('re-initialized vars')
             console.log('Closing At',new Date(),new Date().getTime());
-
-            //download the file
-            downloadCSV(csv_string, active_machine+`_${count}_`+new Date().getTime()+"_outputfile.csv");
-
+            
             return;
         }
 
