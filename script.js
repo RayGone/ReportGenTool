@@ -2,6 +2,7 @@ var available_machines = [];
 var active_machine = false;
 var semaphore = 0;
 var files_to_process = [];
+var n_files = 0;
 var processed_data = [];
 
 function getHeaders(machine_id) {
@@ -182,12 +183,11 @@ function process(fObject, machine_id, pid) {
         
         processed_data = processed_data.concat(output);
         semaphore++;
-        console.log(semaphore)
         p_el.children[2].innerHTML = semaphore;
         
         if(files_to_process.length){
             setTimeout((pid) => {
-                p_el.children[3].innerHTML = ((semaphore+1)*100/files_to_process.length).toFixed(2) + "%";
+                p_el.children[3].innerHTML = ((semaphore+1)*100/n_files).toFixed(2) + "%";
                 process(files_to_process.pop(),active_machine,pid)
             }, 50,pid);
         }
@@ -282,12 +282,13 @@ function run() {
         if (file.name.includes(active_machine)) files_to_process.push(file);
     }
 
+    n_files = files_to_process.length;
     file = files_to_process.pop();
     tbody.innerHTML += `<tr id="${active_machine}">
                     <td>${active_machine}</td>
                     <td>${file.name}</td>
                     <td>0</td>
-                    <td>${((semaphore+1)*100/files_to_process.length).toFixed(2)}%</td>
+                    <td>${((semaphore+1)*100/n_files).toFixed(2)}%</td>
                 </tr>`;
     process(file,active_machine,active_machine);
 }
