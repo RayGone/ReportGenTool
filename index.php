@@ -55,16 +55,22 @@
                 <form>
                     <br>
                     <input id='files' onchange="fileSelectionObserver(this)" class='form-control' type='file' name='files' accept="text/csv" multiple>
+                    
                 </form>
             </div>
         </div>
 
         <div class='row'>
             <div class='col-md-8 offset-2 d-none machine'>
+                <div class='row'>
+                    <div class='display-6'>Generate Report</div>
+                    <div class='col-sm-4'><label for='from'>From: </label>&nbsp;&nbsp;&nbsp;&nbsp;<input class='form-control' type='date' name='from' date></div>
+                    <div class='offset-4 col-sm-4'><label for='from'>To: </label>&nbsp;&nbsp;&nbsp;&nbsp;<input class='form-control' type='date' name='to' date></div>
+                </div><br>
                 <label for='filter'>Take average of: <span id='agg-val'>5</span>min</label>
                 <input name='filter' type='range' min=1 max=120 style='width:100%;height:2em' oninput="document.getElementById('agg-val').innerHTML = this.value" value=5>
                 <nav class="alert alert-primary">
-                    <div class="" href="#">&nbsp;&nbsp;Selected Machine: &nbsp;&nbsp;&nbsp;<span id='sel-mac' class='dispaly-4 text-center'></span> </div>
+                    <div class="" href="#">&nbsp;&nbsp;Select Machine: &nbsp;&nbsp;&nbsp;<span id='sel-mac' class='dispaly-4 text-center'></span> </div>
                 </nav>
 
                 <br>

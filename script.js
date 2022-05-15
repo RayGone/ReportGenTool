@@ -1,4 +1,5 @@
-var active_machines = [];
+var available_machines = [];
+var active_machine;
 var semaphore = 0;
 
 function getHeaders(machine_id) {
@@ -43,21 +44,60 @@ function fileSelectionObserver(input) {
         document.querySelector('.machine').classList.remove('d-none');
     } else {
         document.querySelector('.machine').classList.add('d-none');
-        active_machines = [];
+        available_machines = [];
         return;
     }
     let machine = [];
+    let max_date = '';
+    let min_date = '';
     for (let file of input.files) {
-        let name = file.name.split('_')[0];
+        let sp = file.name.split('_');
+        let name = sp[0];
+        let date = sp[1];
+        if(!(max_date && min_date)) max_date = min_date = date;
+        else{
+            if(date > max_date) max_date = date;
+            if(date<min_date) min_date = date;
+        }
         machine.push(name)
     }
+
+    function fileDateParser(dateString){
+        let year =  dateString.substr(0,4);
+        let month = dateString.length == 7 ? "0"+dateString.substr(4,1) : dateString.substr(4,2);
+        let date = dateString.length == 7 ? dateString.substr(5,2) : dateString.substr(6,2)
+        return `${year}-${month}-${date}`;
+    }
+
+    document.querySelectorAll('[date]').forEach(elm => {
+        elm.max = fileDateParser(max_date);
+        elm.min = fileDateParser(min_date);
+        if(machine.length == 1) elm.value = elm.max;
+    });
+    console.log()
     machine = [...new Set(machine)]
-    active_machines = machine
+    available_machines = machine
 
     let sel_lbl = document.getElementById('sel-mac');
     sel_lbl.innerHTML = '';
+
     for (let m of machine) {
-        sel_lbl.innerHTML += `<span class='badge badge-pill badge-primary display-4 m-3'>${m}</span>`;
+        sel_lbl.innerHTML += `<span class='btn btn-sm btn-primary btn-m display-4 m-3' onclick="selectMachine(this)">${m}</span>`;
+    }
+}
+
+function selectMachine(selected){
+    let sm = document.querySelectorAll('.btn-m');
+    for(let btn of sm){
+        if(btn.innerHTML == selected.innerHTML){
+            btn.classList.add('active');
+            btn.classList.remove('btn-primary')
+            btn.classList.add('btn-success')
+        }else{
+            btn.classList.remove('active')
+            btn.classList.add('btn-primary')
+            btn.classList.remove('btn-success')
+        }
     }
 }
 
@@ -203,9 +243,11 @@ function run() {
     let input = document.getElementById('files');
     let c = 0;
     let flag = false;
-    for (let m of active_machines) {
+    active_machine = available_machines.pop();
+    return;
+    for (let m of available_machines) {
         // if (m != 'PM04') continue
-        //if(!(m == 'PM03' || m == 'PM06')) continue;
+        if(!(m == 'PM03' || m == 'PM06')) continue;
         for (let file of input.files) {
             if (file.name.includes(m)) {
                 c++;
@@ -230,9 +272,9 @@ function closeModal() {
     document.querySelector('.starter').removeAttribute('disabled');
     document.querySelector('.loader').classList.remove('d-none');
     document.querySelector('.cs').classList.add('d-none');
-    document.querySelector('.machine').classList.add('d-none');
+    // document.querySelector('.machine').classList.add('d-none');
     document.querySelector('.modal').classList.add('d-none')
-    let input = document.getElementById('files');
-    input.type = '';
-    input.type = 'file';
+    // let input = document.getElementById('files');
+    // input.type = '';
+    // input.type = 'file';
 }
