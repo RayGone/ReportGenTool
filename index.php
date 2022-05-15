@@ -106,9 +106,9 @@
                     <table class='table table-striped'>
                         <thead>
                             <th scope='col'>#</th>
-                            <th scope='col'>Input File Name</th>
-                            <th scope='col'>Output File Name</th>
-                            <th scope='col'>Status</th>
+                            <th scope='col'>File Being Processed</th>
+                            <th scope='col'>No. of files Processed</th>
+                            <th scope='col'>Progress</th>
                         </thead>
                         <tbody>
 

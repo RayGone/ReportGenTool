@@ -1,6 +1,8 @@
 var available_machines = [];
-var active_machine;
+var active_machine = false;
 var semaphore = 0;
+var files_to_process = [];
+var processed_data = [];
 
 function getHeaders(machine_id) {
     var pm3_headers = 'Date,Time,A400 Circuit Status,A270 Circuit Status,PM-03 Device Status,BC-82 Device Status,PM-03 Sound Control FB,PM-03 Sound Control SP,PM-03 Sound Control CV,BC-82 Speed SP,PM-03 Sound Control Enable,BE-15 Amps\n';
@@ -81,8 +83,8 @@ function fileSelectionObserver(input) {
     for (let m of available_machines) {
         sel_lbl.innerHTML += `<span class='btn btn-sm btn-primary btn-m display-4 m-3' onclick="selectMachine(this)">${m}</span>`;
     }
-    if(available_machines.length > 1)
-        sel_lbl.innerHTML += `<span class='btn btn-sm btn-primary btn-m display-4 m-3' onclick="selectMachine(this)">ALL</span>`;
+    // if(available_machines.length > 1)
+    //     sel_lbl.innerHTML += `<span class='btn btn-sm btn-primary btn-m display-4 m-3' onclick="selectMachine(this)">ALL</span>`;
 
 }
 
@@ -131,10 +133,12 @@ function arrayToCSV(arr, delimiter = ',') {
 }
 
 function process(fObject, machine_id, pid) {
-    let p_el = document.getElementById(pid);
-    document.querySelector('.modal').classList.toggle('d-none')
+    // do not let to close the model untill all the files are processed and download ready;
+    document.querySelector('.modal').classList.remove('d-none');
 
-    let current_file;
+    let p_el = document.getElementById(pid);
+    p_el.children[1].innerHTML = fObject.name;
+
     let reader = new FileReader();
 
     reader.addEventListener('load', (event) => {
@@ -142,9 +146,6 @@ function process(fObject, machine_id, pid) {
         var result = event.target.result;
         let timestamps;//,max, min;
         [result, timestamps] = createTimeStampedDict(checkRemoveHeaders(parseCSVToJSON(result)))
-        let outputFilename = current_file.split('_')[0] + "_" + result[timestamps[0]][0] + `_outputfile_${filter / 60}min-average_${new Date().getTime()}.csv`;
-        p_el.children[2].innerHTML = outputFilename;
-
         let output = [];
         let current_stamp = timestamps[0];
         let row = result[current_stamp];
@@ -152,8 +153,6 @@ function process(fObject, machine_id, pid) {
         let counts = 0;
         for (let t = 1; t < timestamps.length; t++) {
             counts++;
-
-            p_el.children[3].innerHTML = ((t / timestamps.length) * 100).toFixed(2) + "%";
             let diff = timestamps[t] - current_stamp;
             if (diff <= filter) {
                 for (let i = 2; i < row.length; i++) {
@@ -178,17 +177,48 @@ function process(fObject, machine_id, pid) {
             row[i] /= counts;
             row[i] = row[i].toFixed(4)
         }
-        p_el.children[3].innerHTML = 'Preparing for download....';
+        
         output.push(row);
+        
+        processed_data = processed_data.concat(output);
+        semaphore++;
+        console.log(semaphore)
+        p_el.children[2].innerHTML = semaphore;
+        
+        if(files_to_process.length){
+            setTimeout((pid) => {
+                p_el.children[3].innerHTML = (100/files_to_process.length).toFixed(2) + "%";
+                process(files_to_process.pop(),active_machine,pid)
+            }, 50,pid);
+        }
+        else{
+            let csv_string = getHeaders(machine_id) + arrayToCSV(processed_data);
+            let count = semaphore
+            // flag complete
+            p_el.children[3].innerHTML = 'Complete';
+            p_el.children[1].innerHTML = '-----------------';
+            
+            // re-init variables
+            semaphore = 0;
+            processed_data = [];
+            files_to_process = [];
+            active_machine = false;
+            console.log('re-initialized vars')
+            console.log('Closing At',new Date(),new Date().getTime());
 
-        let csv_string = getHeaders(machine_id) + arrayToCSV(output)
+            //download the file
+            downloadCSV(csv_string, active_machine+`_${count}_`+new Date().getTime()+"_outputfile.csv");
 
-        // do not let to close the model untill all the files are processed and download ready;
-        document.querySelector('.modal').classList.remove('d-none');
-        // flag complete
-        p_el.children[3].innerHTML = 'Complete';
-        p_el.scrollIntoView();
-        downloadCSV(csv_string, outputFilename)
+            return;
+        }
+
+        if(semaphore%1000==0){
+            console.log('Downloading because of semaphore',semaphore);
+            let csv_string = getHeaders(machine_id) + arrayToCSV(processed_data);
+            // re-init processed_data as the data is being downloaded
+            processed_data = [];
+            downloadCSV(csv_string, active_machine+`_${semaphore}_${new Date().getTime()}_outputfile.csv`);
+        }
     });
 
     current_file = fObject.name.split('.')[0];
@@ -217,12 +247,9 @@ function downloadCSV(csv, filename) {
     setTimeout(downloadLink.click());
     setTimeout(function (element) {
         element.parentNode.removeChild(element);
-        semaphore--;
-        if(semaphore <= 0){
+        if(files_to_process.length == 0){
             document.querySelector('.loader').classList.add('d-none');
             document.querySelector('.cs').classList.remove('d-none');
-            document.querySelector('.close-modal').scrollIntoView();
-            console.log('Closing At',new Date(),new Date().getTime());
         }
     }, 2000, downloadLink);
 }
@@ -240,36 +267,29 @@ function messageProcessing(){
 }
 
 function run() {
+    if(!active_machine){
+        alert('Select a Machine to Process');
+        return; 
+    }
+
     console.log('Starting At',new Date(),new Date().getTime());
     document.querySelector('.modal').classList.remove('d-none');
     document.querySelector('.starter').setAttribute('disabled', true);
     let tbody = document.querySelector('tbody');
     tbody.innerHTML = '';
     let input = document.getElementById('files');
-    let c = 0;
-    let flag = false;
-
-    for (let m of available_machines) {
-        if (m != active_machine && active_machine != 'ALL') continue
-
-        for (let file of input.files) {
-            if (file.name.includes(m)) {
-                c++;
-                flag = true;
-                tbody.innerHTML += `<tr id="${m}_${c}">
-                    <th scope='row'>${c}</th>
-                    <td>${file.name}</td>
-                    <td></td>
-                    <td>0%</td>
-                </tr>`;
-            }
-            if (flag) {
-                flag = false;
-                semaphore++;
-                setTimeout(process, 100, file, m, m + "_" + c);
-            }
-        }
+    for (let file of input.files) {
+        if (file.name.includes(active_machine)) files_to_process.push(file);
     }
+
+    file = files_to_process.pop();
+    tbody.innerHTML += `<tr id="${active_machine}">
+                    <td>${active_machine}</td>
+                    <td>${file.name}</td>
+                    <td>0</td>
+                    <td>${(100/files_to_process.length).toFixed(2)}%</td>
+                </tr>`;
+    process(file,active_machine,active_machine);
 }
 
 function closeModal() {
