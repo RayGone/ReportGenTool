@@ -47,7 +47,6 @@ function fileSelectionObserver(input) {
         available_machines = [];
         return;
     }
-    let machine = [];
     let max_date = '';
     let min_date = '';
     for (let file of input.files) {
@@ -59,7 +58,8 @@ function fileSelectionObserver(input) {
             if(date > max_date) max_date = date;
             if(date<min_date) min_date = date;
         }
-        machine.push(name)
+        if(!available_machines.some( m => m==name ))
+            available_machines.push(name)
     }
 
     function fileDateParser(dateString){
@@ -72,18 +72,18 @@ function fileSelectionObserver(input) {
     document.querySelectorAll('[date]').forEach(elm => {
         elm.max = fileDateParser(max_date);
         elm.min = fileDateParser(min_date);
-        if(machine.length == 1) elm.value = elm.max;
+        if(available_machines.length == 1) elm.value = elm.max;
     });
-    console.log()
-    machine = [...new Set(machine)]
-    available_machines = machine
 
     let sel_lbl = document.getElementById('sel-mac');
     sel_lbl.innerHTML = '';
 
-    for (let m of machine) {
+    for (let m of available_machines) {
         sel_lbl.innerHTML += `<span class='btn btn-sm btn-primary btn-m display-4 m-3' onclick="selectMachine(this)">${m}</span>`;
     }
+    if(available_machines.length > 1)
+        sel_lbl.innerHTML += `<span class='btn btn-sm btn-primary btn-m display-4 m-3' onclick="selectMachine(this)">ALL</span>`;
+
 }
 
 function selectMachine(selected){
@@ -93,6 +93,7 @@ function selectMachine(selected){
             btn.classList.add('active');
             btn.classList.remove('btn-primary')
             btn.classList.add('btn-success')
+            active_machine = selected.innerHTML;
         }else{
             btn.classList.remove('active')
             btn.classList.add('btn-primary')
@@ -234,6 +235,10 @@ function sleep(milliseconds = 1000){
     }
 }
 
+function messageProcessing(){
+    
+}
+
 function run() {
     console.log('Starting At',new Date(),new Date().getTime());
     document.querySelector('.modal').classList.remove('d-none');
@@ -243,11 +248,10 @@ function run() {
     let input = document.getElementById('files');
     let c = 0;
     let flag = false;
-    active_machine = available_machines.pop();
-    return;
+
     for (let m of available_machines) {
-        // if (m != 'PM04') continue
-        if(!(m == 'PM03' || m == 'PM06')) continue;
+        if (m != active_machine && active_machine != 'ALL') continue
+
         for (let file of input.files) {
             if (file.name.includes(m)) {
                 c++;

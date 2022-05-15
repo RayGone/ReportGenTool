@@ -54,7 +54,7 @@
             <div class='col-md-8 offset-2'>
                 <form>
                     <br>
-                    <input id='files' onchange="fileSelectionObserver(this)" class='form-control' type='file' name='files' accept="text/csv" multiple>
+                    <input webkitdirectory multiple id='files' onchange="fileSelectionObserver(this)" class='form-control' type='file' name='files' accept="text/csv">
                     
                 </form>
             </div>
