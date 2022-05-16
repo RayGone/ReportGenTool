@@ -67,7 +67,7 @@ function fileSelectionObserver(input) {
     for (let file of input.files) {
         let sp = file.name.split('_');
         let name = sp[0];
-        if(!available_machines.includes(name)) continue;
+        if(!acceptable_machines.includes(name)) continue;
         let date = sp[1];
 	    if(date == 'log') continue;
         if (!(max_date && min_date)) max_date = min_date = date;
@@ -232,7 +232,7 @@ function process(fObject, machine_id, pid) {
             downloadCSV(csv_string, active_machine + `_${count}_` + new Date().getTime() + "_outputfile.csv");
 
             if(selected_machines.length){
-                fireNotification(`${active_machine} is complete!!`,"File is being downloaded!!!");
+                // fireNotification(`${active_machine} is complete!!`,"File is being downloaded!!!");
                 files_to_process = [];
                 processed_data = [];
                 semaphore = 0;
