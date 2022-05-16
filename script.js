@@ -67,7 +67,9 @@ function fileSelectionObserver(input) {
     for (let file of input.files) {
         let sp = file.name.split('_');
         let name = sp[0];
+        if(!available_machines.includes(name)) continue;
         let date = sp[1];
+	    if(date == 'log') continue;
         if (!(max_date && min_date)) max_date = min_date = date;
         else {
             if (date > max_date) max_date = date;
