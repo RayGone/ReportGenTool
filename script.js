@@ -95,10 +95,12 @@ function fileSelectionObserver(input) {
 
 function selectMachine(selected = null) {
     if (selected) {
+        if(selected.classList.contains('active')) selected_machines = selected_machines.filter( s => s!=selected.innerHTML);
+        else selected_machines.push(selected.innerHTML);
+
         selected.classList.toggle('active');
         selected.classList.toggle('btn-primary');
         selected.classList.toggle('btn-success');
-        selected_machines.push(selected.innerHTML);
     } else {
         let sm = document.querySelectorAll('.btn-m');
         for (let btn of sm) {
@@ -342,10 +344,25 @@ function run() {
     console.log('Starting At', new Date(), new Date().getTime());
     document.querySelector('.modal').classList.remove('d-none');
     document.querySelector('.starter').setAttribute('disabled', true);
+
     let tbody = document.querySelector('tbody');
     let input = document.getElementById('files');
+
+    let from = '', to = '';
+
+    from = document.querySelector('[name=from]').value;
+    to = document.querySelector('[name=to]').value;
+
     for (let file of input.files) {
-        if (file.name.includes(active_machine)) files_to_process.push(file);
+        if (file.name.includes(active_machine)){
+            if(from && to) {
+                let fdate = fileDateParser(file.name.split('_')[1]);
+                if(fdate<=to && fdate>=from){
+                    files_to_process.push(file);
+                }
+            }
+            else files_to_process.push(file);
+        }
     }
 
     n_files = files_to_process.length;
@@ -368,8 +385,6 @@ function closeModal() {
     document.querySelector('.modal').classList.add('d-none');
     document.querySelector('.close-modal').classList.add('d-none');
     document.querySelector('tbody').innerHTML = '';
+    stop_exec = false;
     selectMachine();
-    // let input = document.getElementById('files');
-    // input.type = '';
-    // input.type = 'file';
 }
