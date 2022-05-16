@@ -234,6 +234,8 @@ function process(fObject, machine_id, pid) {
                 files_to_process = [];
                 processed_data = [];
                 semaphore = 0;
+                console.log('re-initialized vars')
+                console.log('Closing At', new Date(), new Date().getTime());
                 run();
                 return;
             }
