@@ -42,6 +42,13 @@ function checkRemoveHeaders(data = []) {
     return [];
 }
 
+function fileDateParser(dateString){
+    let year =  dateString.substr(0,4);
+    let month = dateString.length == 7 ? "0"+dateString.substr(4,1) : dateString.substr(4,2);
+    let date = dateString.length == 7 ? dateString.substr(5,2) : dateString.substr(6,2)
+    return `${year}-${month}-${date}`;
+}
+
 function fileSelectionObserver(input) {
     if (input.files.length > 0) {
         document.querySelector('.machine').classList.remove('d-none');
@@ -63,13 +70,6 @@ function fileSelectionObserver(input) {
         }
         if(!available_machines.some( m => m==name ))
             available_machines.push(name)
-    }
-
-    function fileDateParser(dateString){
-        let year =  dateString.substr(0,4);
-        let month = dateString.length == 7 ? "0"+dateString.substr(4,1) : dateString.substr(4,2);
-        let date = dateString.length == 7 ? dateString.substr(5,2) : dateString.substr(6,2)
-        return `${year}-${month}-${date}`;
     }
 
     document.querySelectorAll('[date]').forEach(elm => {
@@ -262,12 +262,8 @@ function sleep(milliseconds = 1000){
     }
 }
 
-function messageProcessing(){
-    
-}
-
 function run() {
-    if(!active_machine){
+    if(!active_machine || active_machine == 'PM03' || active_machine == 'PM06'){
         alert('Select a Machine to Process');
         return; 
     }
