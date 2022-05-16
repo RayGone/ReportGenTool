@@ -1,4 +1,5 @@
-Notification.requestPermission();
+// Notification.requestPermission();
+var acceptable_machines = ['PM03','PM04','PM05','PM06']
 var available_machines = [];
 var selected_machines = [];
 var active_machine = false;
@@ -72,7 +73,7 @@ function fileSelectionObserver(input) {
             if (date > max_date) max_date = date;
             if (date < min_date) min_date = date;
         }
-        if (!available_machines.some(m => m == name))
+        if (!available_machines.some(m => m == name) && acceptable_machines.some(m => m == name))
             available_machines.push(name)
     }
 
@@ -80,6 +81,9 @@ function fileSelectionObserver(input) {
         elm.max = fileDateParser(max_date);
         elm.min = fileDateParser(min_date);
         if (available_machines.length == 1) elm.value = elm.max;
+        else{
+            elm.value = elm.name == 'from' ? elm.min : elm.max;
+        }
     });
 
     let sel_lbl = document.getElementById('sel-mac');
@@ -300,7 +304,7 @@ function sleep(milliseconds = 1000) {
 }
 
 function fireNotification(msg_title='',msg_body=''){
-    if (("Notification" in window)) {
+    if (("Notification" in window) && false) {
         if(notification) notification.close();   
         // Let's check whether notification permissions have already been granted
         if (Notification.permission === "granted") {
@@ -366,6 +370,12 @@ function run() {
     }
 
     n_files = files_to_process.length;
+    if(!n_files){
+        fireNotification('No Files to Continue!!!',"There are no files for "+active_machine+" on selected date range.")
+        if(selected_machines.length) run();
+        else closeModal();
+        return;
+    }
     file = files_to_process.pop();
     tbody.innerHTML += `<tr id="${active_machine}">
                     <td>${active_machine}</td>
