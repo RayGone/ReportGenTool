@@ -4,6 +4,7 @@ var semaphore = 0;
 var files_to_process = [];
 var n_files = 0;
 var processed_data = [];
+var stop_exec = false;
 
 function getHeaders(machine_id) {
     var pm3_headers = 'Date,Time,A400 Circuit Status,A270 Circuit Status,PM-03 Device Status,BC-82 Device Status,PM-03 Sound Control FB,PM-03 Sound Control SP,PM-03 Sound Control CV,BC-82 Speed SP,PM-03 Sound Control Enable,BE-15 Amps\n';
@@ -89,10 +90,10 @@ function fileSelectionObserver(input) {
 
 }
 
-function selectMachine(selected){
+function selectMachine(selected = null){
     let sm = document.querySelectorAll('.btn-m');
     for(let btn of sm){
-        if(btn.innerHTML == selected.innerHTML){
+        if(selected && btn.innerHTML == selected.innerHTML){
             btn.classList.add('active');
             btn.classList.remove('btn-primary')
             btn.classList.add('btn-success')
@@ -185,6 +186,21 @@ function process(fObject, machine_id, pid) {
         semaphore++;
         p_el.children[2].innerHTML = semaphore;
         
+        if(stop_exec){
+            console.log('Force Close!!')
+            stop_exec = false;
+            // re-init variables
+            semaphore = 0;
+            processed_data = [];
+            files_to_process = [];
+            active_machine = false;
+            stop_exec = false;
+            console.log('re-initialized vars')
+            console.log('Closing At',new Date(),new Date().getTime());
+            closeModal();
+            return;
+        }
+
         if(files_to_process.length){
             setTimeout((pid) => {
                 p_el.children[3].innerHTML = ((semaphore+1)*100/n_files).toFixed(2) + "%";
@@ -206,13 +222,14 @@ function process(fObject, machine_id, pid) {
             processed_data = [];
             files_to_process = [];
             active_machine = false;
+            stop_exec = false;
             console.log('re-initialized vars')
             console.log('Closing At',new Date(),new Date().getTime());
             
             return;
         }
 
-        if(semaphore%1000==0){
+        if(false){
             console.log('Downloading because of semaphore',semaphore);
             let csv_string = getHeaders(machine_id) + arrayToCSV(processed_data);
             // re-init processed_data as the data is being downloaded
@@ -262,9 +279,13 @@ function sleep(milliseconds = 1000){
     }
 }
 
+function stop(){
+    stop_exec = true;
+}
+
 function run() {
-    if(!active_machine || active_machine == 'PM03' || active_machine == 'PM06'){
-        alert('Select a Machine to Process');
+    if(!active_machine || active_machine == 'PM04' || active_machine == 'PM05'){
+        alert('Select a Machine to Process. \nPM05, PM04 are not supported yet!!');
         return; 
     }
 
@@ -294,7 +315,8 @@ function closeModal() {
     document.querySelector('.loader').classList.remove('d-none');
     document.querySelector('.cs').classList.add('d-none');
     // document.querySelector('.machine').classList.add('d-none');
-    document.querySelector('.modal').classList.add('d-none')
+    document.querySelector('.modal').classList.add('d-none');
+    selectMachine();
     // let input = document.getElementById('files');
     // input.type = '';
     // input.type = 'file';
