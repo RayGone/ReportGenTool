@@ -23,7 +23,7 @@
             position: fixed;
             height: 100vh;
             width: 100vw;
-            background-color: #33333388;
+            background-color: #333333aa;
             display: block;
         }
 
@@ -35,6 +35,21 @@
             background-color: #eeeeee88;
             box-shadow: 2px 2px 5px #333, -2px -2px 5px #ccc;
             padding: 5px;
+        }
+
+        .close-modal{
+            padding:10px;
+            margin-right: 30px;
+            float:right;font-size:2em;color:red;cursor:pointer;
+            text-shadow: 2px 2px 2px #fff, -1px -1px 2px #888;
+        }
+
+        .sp2{
+            animation-delay: 150ms;
+        }
+
+        .sp3{
+            animation-delay: 300ms;
         }
     </style>
 </head>
@@ -82,12 +97,12 @@
     </div>
 
     <div class='modal d-none'>
-        <div style='height:5vh;width:100vw'><span class='close-modal' style='float:right;font-size:2em;color:red;cursor:pointer' onclick='closeModal()'>X&nbsp;&nbsp;&nbsp;&nbsp;</span></div>
+        <div style='height:5vh;width:100vw'><span class='close-modal d-none' onclick='closeModal()'>X</span></div>
         <div class="row loader">
             <div class="col-md-4 offset-4 text-center">
                 <div class="spinner-grow spinner-grow-xl text-info" style="width: 5rem; height: 5rem;" role="status"></div>
-                <div class="spinner-grow spinner-grow-xl text-info" style="width: 5rem; height: 5rem;" role="status"></div>
-                <div class="spinner-grow spinner-grow-xl text-info" style="width: 5rem; height: 5rem;" role="status"></div>
+                <div class="spinner-grow spinner-grow-xl text-info sp2" style="width: 5rem; height: 5rem;" role="status"></div>
+                <div class="spinner-grow spinner-grow-xl text-info sp3" style="width: 5rem; height: 5rem;" role="status"></div>
             </div>
             <div class='col-md-12 text-center'>
                 <span class='display-4 td'>Processing....</span>
@@ -114,6 +129,7 @@
 
                         </tbody>
                     </table>
+                    <button class="btn btn-sm btn-primary d-flex justify-content-center" onclick="stop()">Stop Processing</button>
                 </div>
             </div>
         </div>

@@ -1,3 +1,4 @@
+Notification.requestPermission();
 var available_machines = [];
 var selected_machines = [];
 var active_machine = false;
@@ -6,6 +7,7 @@ var files_to_process = [];
 var n_files = 0;
 var processed_data = [];
 var stop_exec = false;
+var notification = null;
 
 function getHeaders(machine_id) {
     var pm3_headers = 'Date,Time,A400 Circuit Status,A270 Circuit Status,PM-03 Device Status,BC-82 Device Status,PM-03 Sound Control FB,PM-03 Sound Control SP,PM-03 Sound Control CV,BC-82 Speed SP,PM-03 Sound Control Enable,BE-15 Amps\n';
@@ -190,12 +192,15 @@ function process(fObject, machine_id, pid) {
         if (stop_exec) {
             console.log('Force Close!!')
             stop_exec = false;
+
             // re-init variables
             semaphore = 0;
             processed_data = [];
             files_to_process = [];
+            selected_machines = [];
             active_machine = false;
             stop_exec = false;
+
             console.log('re-initialized vars')
             console.log('Closing At', new Date(), new Date().getTime());
             closeModal();
@@ -218,15 +223,27 @@ function process(fObject, machine_id, pid) {
             //download the file
             downloadCSV(csv_string, active_machine + `_${count}_` + new Date().getTime() + "_outputfile.csv");
 
+            if(selected_machines.length){
+                fireNotification(`${active_machine} is complete!!`,"File is being downloaded!!!");
+                files_to_process = [];
+                processed_data = [];
+                semaphore = 0;
+                run();
+                return;
+            }
             // re-init variables
             semaphore = 0;
             processed_data = [];
             files_to_process = [];
+            selected_machines = [];
             active_machine = false;
             stop_exec = false;
+
             console.log('re-initialized vars')
             console.log('Closing At', new Date(), new Date().getTime());
 
+            document.querySelector('.close-modal').classList.remove('d-none');
+            document.querySelector('.close-modal').scrollIntoView();
             return;
         }
 
@@ -280,39 +297,45 @@ function sleep(milliseconds = 1000) {
     }
 }
 
+function fireNotification(msg_title='',msg_body=''){
+    if (("Notification" in window)) {
+        if(notification) notification.close();   
+        // Let's check whether notification permissions have already been granted
+        if (Notification.permission === "granted") {
+            // If it's okay let's create a notification             
+            notification = new Notification(msg_title,{
+                body: msg_body
+            });
+        }
+
+        // Otherwise, we need to ask the user for permission
+        else if (Notification.permission !== "denied") {
+            Notification.requestPermission().then(function (permission) {
+                // If the user accepts, let's create a notification
+                if (permission === "granted") {
+                    notification = new Notification(msg_title,{
+                        body: msg_body
+                    });
+                }
+            });
+        }
+        else{
+            alert(msg_title+"\n"+msg_body);
+        }
+    }else alert(msg_title+"\n"+msg_body);
+}
+
 function stop() {
     stop_exec = true;
 }
 
 function run() {
-    if (!active_machine || active_machine == 'PM04' || active_machine == 'PM05') {
+    if(selected_machines.length) active_machine = selected_machines.pop();
+
+    if (!active_machine) {
         var msg_title = "No Machines are selected for processing!!!"
         var msg_body = "Select a Machine from the list.";
-        if (("Notification" in window)) {
-            // Let's check whether notification permissions have already been granted
-            if (Notification.permission === "granted") {
-                // If it's okay let's create a notification                
-                var notification = new Notification(msg_title,{
-                    body: msg_body
-                });
-            }
-
-            // Otherwise, we need to ask the user for permission
-            else if (Notification.permission !== "denied") {
-                Notification.requestPermission().then(function (permission) {
-                    // If the user accepts, let's create a notification
-                    if (permission === "granted") {
-                        var notification = new Notification(msg_title,{
-                            body: msg_body
-                        });
-                    }
-                });
-            }
-            else{
-                alert(msg_title+"\n"+msg_body);
-            }
-        }else alert(msg_title+"\n"+msg_body);
-
+        fireNotification(msg_title,msg_body);
         return;
     }
 
@@ -320,7 +343,6 @@ function run() {
     document.querySelector('.modal').classList.remove('d-none');
     document.querySelector('.starter').setAttribute('disabled', true);
     let tbody = document.querySelector('tbody');
-    tbody.innerHTML = '';
     let input = document.getElementById('files');
     for (let file of input.files) {
         if (file.name.includes(active_machine)) files_to_process.push(file);
@@ -334,6 +356,7 @@ function run() {
                     <td>0</td>
                     <td>${((semaphore + 1) * 100 / n_files).toFixed(2)}%</td>
                 </tr>`;
+
     process(file, active_machine, active_machine);
 }
 
@@ -343,6 +366,8 @@ function closeModal() {
     document.querySelector('.cs').classList.add('d-none');
     // document.querySelector('.machine').classList.add('d-none');
     document.querySelector('.modal').classList.add('d-none');
+    document.querySelector('.close-modal').classList.add('d-none');
+    document.querySelector('tbody').innerHTML = '';
     selectMachine();
     // let input = document.getElementById('files');
     // input.type = '';
