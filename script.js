@@ -68,7 +68,7 @@ function fileSelectionObserver(input) {
         let sp = file.name.split('_');
         let name = sp[0];
         if(!acceptable_machines.includes(name)) continue;
-        let date = sp[1];
+        let date = fileDateParser(sp[1]);
 	    if(date == 'log') continue;
         if (!(max_date && min_date)) max_date = min_date = date;
         else {
@@ -80,8 +80,8 @@ function fileSelectionObserver(input) {
     }
 
     document.querySelectorAll('[date]').forEach(elm => {
-        elm.max = fileDateParser(max_date);
-        elm.min = fileDateParser(min_date);
+        elm.max = max_date;
+        elm.min = min_date;
         if (available_machines.length == 1) elm.value = elm.max;
         else{
             elm.value = elm.name == 'from' ? elm.min : elm.max;
