@@ -1,0 +1,74 @@
+body {
+    background-color: steelblue;
+}
+
+.jumbotron {
+    padding: 0 25px;
+    background-color: rgb(233,244,246);
+}
+
+.row {
+    padding-bottom: 20px;
+}
+
+.modal {
+    position: fixed;
+    height: 100vh;
+    width: 100vw;
+    background-color: #333333aa;
+    display: block;
+}
+
+.td {
+    text-shadow: 0 0 5px #fff;
+}
+
+.close-modal {
+    padding: 10px;
+    margin-right: 30px;
+    float: right;
+    font-size: 2em;
+    color: red;
+    cursor: pointer;
+    text-shadow: 2px 2px 2px #fff, -1px -1px 2px #888;
+}
+
+.sp2 {
+    animation-delay: 200ms;
+}
+
+.sp3 {
+    animation-delay: 400ms;
+}
+
+.wrap {
+    box-shadow: 1px 1px 2px #333, -1px -1px 2px #ccc;
+    padding: 0px 10px;
+    background-color: #fff;
+    margin-bottom: 10px;
+    border-radius: 25px;
+}
+
+input[name=filter] {
+    margin-top: 5px;
+}
+
+.machine {
+    box-shadow: 0 0 1rem 0 rgba(0, 0, 0, .2);
+    border-radius: 5px;
+    background-color: rgba(255, 255, 255, .15);
+    padding: 20px;
+    backdrop-filter: blur(5px);
+}
+
+.table-responsive {
+    box-shadow: 0 0 1rem 0 rgba(255, 255, 255, .2);
+    border-radius: 5px;
+    background-color: rgba(17, 104, 159, .9);
+    padding: 10px;
+    backdrop-filter: blur(5px);
+}
+
+tr, td, th {
+    color: whitesmoke;
+}
