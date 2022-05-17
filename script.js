@@ -92,11 +92,41 @@ function fileSelectionObserver(input) {
     sel_lbl.innerHTML = '';
 
     for (let m of available_machines) {
-        sel_lbl.innerHTML += `<span class='btn btn-sm btn-primary btn-m display-4 m-3' onclick="selectMachine(this)">${m}</span>`;
+        sel_lbl.innerHTML += `<span class='btn btn-sm btn-secondary btn-m display-4 m-3' onclick="selectMachine(this)">${m}</span>`;
     }
     // if(available_machines.length > 1)
     //     sel_lbl.innerHTML += `<span class='btn btn-sm btn-primary btn-m display-4 m-3' onclick="selectMachine(this)">ALL</span>`;
+}
 
+
+function listFilesToProcess(input,from,to){
+    for (let file of input.files) {
+        if (file.name.includes(active_machine)){
+            if(from && to) {
+                let fdate = fileDateParser(file.name.split('_')[1]);
+                if(fdate<=to && fdate>=from){
+                    files_to_process.push(file);
+                }
+            }
+            else files_to_process.push(file);
+        }
+    }
+}
+
+function sortListedFilesByDate(){
+    let dates = [];
+    let files_by_date = {};
+    let sorted_list = []
+    for(let file of files_to_process){
+        let d = new Date(fileDateParser(file.name.split('_')[1])).getTime();
+        dates.push(d);
+        files_by_date[d] = file;
+    }    
+    dates.sort();
+    for(let i in dates){
+        sorted_list.push(files_by_date[dates[i]])
+    }
+    files_to_process = sorted_list;
 }
 
 function selectMachine(selected = null) {
@@ -105,13 +135,13 @@ function selectMachine(selected = null) {
         else selected_machines.push(selected.innerHTML);
 
         selected.classList.toggle('active');
-        selected.classList.toggle('btn-primary');
+        selected.classList.toggle('btn-secondary');
         selected.classList.toggle('btn-success');
     } else {
         let sm = document.querySelectorAll('.btn-m');
         for (let btn of sm) {
             btn.classList.remove('active');
-            btn.classList.add('btn-primary');
+            btn.classList.add('btn-secondary');
             btn.classList.remove('btn-success');
         }
     }
@@ -155,7 +185,7 @@ function process(fObject, machine_id, pid) {
     let reader = new FileReader();
 
     reader.addEventListener('load', (event) => {
-        let filter = document.querySelector('[name=filter]').value * 60;
+        let filter = document.querySelector('[name=filter]').value;
         var result = event.target.result;
         let timestamps;//,max, min;
         [result, timestamps] = createTimeStampedDict(checkRemoveHeaders(parseCSVToJSON(result)))
@@ -222,6 +252,7 @@ function process(fObject, machine_id, pid) {
             }, 50, pid);
         }
         else {
+            processed_data.reverse();
             let csv_string = getHeaders(machine_id) + arrayToCSV(processed_data);
             let count = semaphore
             // flag complete
@@ -361,17 +392,8 @@ function run() {
     from = document.querySelector('[name=from]').value;
     to = document.querySelector('[name=to]').value;
 
-    for (let file of input.files) {
-        if (file.name.includes(active_machine)){
-            if(from && to) {
-                let fdate = fileDateParser(file.name.split('_')[1]);
-                if(fdate<=to && fdate>=from){
-                    files_to_process.push(file);
-                }
-            }
-            else files_to_process.push(file);
-        }
-    }
+    listFilesToProcess(input,from,to);
+    sortListedFilesByDate();
 
     n_files = files_to_process.length;
     if(!n_files){
