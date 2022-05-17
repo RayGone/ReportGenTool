@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Tool</title>
     <link rel='icon' type='image/png' href='c_logo.png'>
-    <link rel="stylesheet" href="/bootstrap4/css/bootstrap.min.css">
-    <link rel="stylesheet" href="/bootstrap5/css/bootstrap.min.css">
-    <link rel='stylesheet' href='custom.css'>
+    <link rel="stylesheet" href="scripts/bootstrap4.min.css"> 
+    <link rel="stylesheet" href="scripts/bootstrap5.min.css"> 
+    <link rel='stylesheet' href='scripts/custom.css'>
 </head>
 
 <body>
@@ -109,6 +109,6 @@
     </div>
     <div class='download-list'></div>
 </body>
-<script src='script.js'></script>
+<script src='scripts/script.js'></script>
 
 </html>
