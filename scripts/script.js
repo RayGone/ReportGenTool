@@ -1,3 +1,10 @@
+function updateDateRangeLabel(range) {
+    let v = parseInt(range.value);
+    let m = v < 60 ? 0 : parseInt(v / 60);
+    let s = v < 60 ? v : parseInt(((v / 60) - m) * 10);
+    document.getElementById('agg-val').innerHTML = `${m}min ${s}s`;
+}
+
 // Notification.requestPermission();
 var acceptable_machines = ['PM03','PM04','PM05','PM06']
 var available_machines = [];
