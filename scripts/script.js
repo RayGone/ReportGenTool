@@ -1,5 +1,12 @@
+function updateDateRangeLabel(range) {
+    let v = parseInt(range.value);
+    let m = v < 60 ? 0 : parseInt(v / 60);
+    let s = v < 60 ? v : parseInt(((v / 60) - m) * 10);
+    document.getElementById('agg-val').innerHTML = `${m}min ${s}s`;
+}
+
 // Notification.requestPermission();
-var acceptable_machines = ['PM03','PM04','PM05','PM06']
+var acceptable_machines = ['PM03','PM04','PM05','PM06','PM607','PM608']
 var available_machines = [];
 var selected_machines = [];
 var active_machine = false;
@@ -9,13 +16,15 @@ var n_files = 0;
 var processed_data = [];
 var stop_exec = false;
 var notification = null;
+var file_regex_pattern = /\w+_\d+_log\.csv/i;
 
 function getHeaders(machine_id) {
-    var pm3_headers = 'Date,Time,A400 Circuit Status,A270 Circuit Status,PM-03 Device Status,BC-82 Device Status,PM-03 Sound Control FB,PM-03 Sound Control SP,PM-03 Sound Control CV,BC-82 Speed SP,PM-03 Sound Control Enable,BE-15 Amps\n';
-    var pm4_headers = `,,Main Parameters,,,,,,,,,,,,,,,Mill Parameters,,,,,,Fan Parameters,,,,,,,,,Classifier Parameters,,,,,\nDate,Time,PM-04 System total Air Flow % of Max,"ATP Secondary Airflow, % of Max",FI-OX DP,PM-04 Mill Motor Current %,PM-04 Feed Side Bearing Temp,PM-04 Outlet Side Bearing Temp,CW-01 %,CW-02 %,CW-03 %,CW-04 %,CW-05 %,CW-06 %,PM-04 Mill Weight,BC-84 Feed Rate,,Mill Main Drive motor Bearing 1 temp.,Mill Main Drive motor Bearing 2 temp.,Header Compressed Air Airflow Fdbk (CFM),Header Compressed Air Pressure Fdbk (PSI),Minex 4 Filter Compressed Air Pressure Fdbk (PSI),,Fan Bearing Temp. 1,Fan Bearing Temp. 2,Fan Bearing 1 Vib. ,Fan Bearing 2 Vib. ,Blower Motor Current %,FA-41 U Winding Temp,FA-41 V Winding Temp,FA-41 W Winding Temp,,CW-01 RPM,CW-02 RPM,CW-03 RPM,CW-04 RPM,CW-05 RPM,CW-06 RPM\n`;
-    var pm5_headers = `,,Main Parameters,,,,,,,,,,,,,,,Mill Parameters,,,,,,Fan Parameters,,,,,,Classifier Parameters,,,,,,\nDate,Time,FA-48 Primary Air Velocity (% of Max Primary),AS-05 Secondary Air Velocity (% of Max Primary),FI-O3 DP,PM-05 Mill Motor Current %,PM-05 Feed Side Bearing Temp,PM-05 Outlet Side Bearing Temp,CW-07 %,CW-08 %,CW-09 %,CW-10 %,CW-11 %,CW-12 %,PM-05 Mill Weight,BC-86 Feed Rate Scaled ,,PM-05 Header Compressed Air Pressure Fdbk (PSI),MX-4 Filter Compressed Air Pressure Fdbk (PSI),AC-05 Header Compressed Airflow Fdbk (CFM),BN-19 Level Fdbk %,Power Factor,,FA-48 Drive Bearing Temp,FA-48 Non-Drive Bearing Temp,FA-48 Drive Bearing Vibration,FA-48 Non-Drive Bearing Vibration,FA-48 System Fan Motor Current (%),,CW-07 RPM,CW-08 RPM,CW-09 RPM,CW-10 RPM,CW-11 RPM,CW-12 RPM,Classifier Speed Setpoint\n`;
-    var pm6_headers = 'Date,Time,AS-06 Flow %,FA-54 Amps %,FA-54 Flow %,FI-04 DP,FA-54 Drive Bearing Temp,FA-54 Non-Drive Bearing Temp,PM-06 Feed Side Bearing Temp,PM-06 Outlet Side Bearing Temp,CW-13 %,CW-14 %,CW-15 %,CW-16 %,CW-17 %,CW-18 %,,,PM-06 Amps %,FA-54 Speed %,FA-54 Drive Bearing Vibration,FA-54 Non-Drive Bearing Vibration,FA-54 Primary Flow SP,FA-54 Primary Flow FB,PM-06 U Winding Temp,PM-06 V Winding Temp,PM-06 W Winding Temp,PM-06 Drive Side Bearing Temp,PM-06 Non-Drive Side Bearing Temp,FA-54 U Winding Temp,FA-54 V Winding Temp,FA-54 W Winding Temp,FA-54 Drive Side Bearing Temp,FA-54 Non-Drive Side Bearing Temp,LU-06 Grease Pump Enabled,LU-06 Grease Pump Run Status,LU-06 Grease Pump System Fault Status,LU-06 Grease Pump Min Since Last Cycle,LU-06 Grease Pump Run Time (Min),BC-88 TPH FB,BC-88 TPH SP,BC-88 Speed %,PM-06 Amps,FA-54 Amps,SI-23 Tons,PM-06 Tons SP,CW-13 RPM,CW-14 RPM,CW-15 RPM,CW-16 RPM,CW-17 RPM,CW-18 RPM,CW-13 Power FB,CW-14 Power FB,CW-15 Power FB,CW-16 Power FB,CW-17 Power FB,CW-18 Power FB,BC-88 Feed Rate,BC-88 Feed Rate By SI-23 Weight\n';
-
+    var pm3_headers = 'Date,Start Time,End Time,A400 Circuit Status,A270 Circuit Status,PM-03 Device Status,BC-82 Device Status,PM-03 Sound Control FB,PM-03 Sound Control SP,PM-03 Sound Control CV,BC-82 Speed SP,PM-03 Sound Control Enable,BE-15 Amps\n';
+    var pm4_headers = `,,,Main Parameters,,,,,,,,,,,,,,,Mill Parameters,,,,,,Fan Parameters,,,,,,,,,Classifier Parameters,,,,,\nDate,Start Time,End Time,PM-04 System total Air Flow % of Max,"ATP Secondary Airflow, % of Max",FI-OX DP,PM-04 Mill Motor Current %,PM-04 Feed Side Bearing Temp,PM-04 Outlet Side Bearing Temp,CW-01 %,CW-02 %,CW-03 %,CW-04 %,CW-05 %,CW-06 %,PM-04 Mill Weight,BC-84 Feed Rate,,Mill Main Drive motor Bearing 1 temp.,Mill Main Drive motor Bearing 2 temp.,Header Compressed Air Airflow Fdbk (CFM),Header Compressed Air Pressure Fdbk (PSI),Minex 4 Filter Compressed Air Pressure Fdbk (PSI),,Fan Bearing Temp. 1,Fan Bearing Temp. 2,Fan Bearing 1 Vib. ,Fan Bearing 2 Vib. ,Blower Motor Current %,FA-41 U Winding Temp,FA-41 V Winding Temp,FA-41 W Winding Temp,,CW-01 RPM,CW-02 RPM,CW-03 RPM,CW-04 RPM,CW-05 RPM,CW-06 RPM\n`;
+    var pm5_headers = `,,,Main Parameters,,,,,,,,,,,,,,,Mill Parameters,,,,,,Fan Parameters,,,,,,Classifier Parameters,,,,,,\nDate,Start Time,End Time,FA-48 Primary Air Velocity (% of Max Primary),AS-05 Secondary Air Velocity (% of Max Primary),FI-O3 DP,PM-05 Mill Motor Current %,PM-05 Feed Side Bearing Temp,PM-05 Outlet Side Bearing Temp,CW-07 %,CW-08 %,CW-09 %,CW-10 %,CW-11 %,CW-12 %,PM-05 Mill Weight,BC-86 Feed Rate Scaled ,,PM-05 Header Compressed Air Pressure Fdbk (PSI),MX-4 Filter Compressed Air Pressure Fdbk (PSI),AC-05 Header Compressed Airflow Fdbk (CFM),BN-19 Level Fdbk %,Power Factor,,FA-48 Drive Bearing Temp,FA-48 Non-Drive Bearing Temp,FA-48 Drive Bearing Vibration,FA-48 Non-Drive Bearing Vibration,FA-48 System Fan Motor Current (%),,CW-07 RPM,CW-08 RPM,CW-09 RPM,CW-10 RPM,CW-11 RPM,CW-12 RPM,Classifier Speed Setpoint\n`;
+    var pm6_headers = 'Date,Start Time,End Time,AS-06 Flow %,FA-54 Amps %,FA-54 Flow %,FI-04 DP,FA-54 Drive Bearing Temp,FA-54 Non-Drive Bearing Temp,PM-06 Feed Side Bearing Temp,PM-06 Outlet Side Bearing Temp,CW-13 %,CW-14 %,CW-15 %,CW-16 %,CW-17 %,CW-18 %,,,PM-06 Amps %,FA-54 Speed %,FA-54 Drive Bearing Vibration,FA-54 Non-Drive Bearing Vibration,FA-54 Primary Flow SP,FA-54 Primary Flow FB,PM-06 U Winding Temp,PM-06 V Winding Temp,PM-06 W Winding Temp,PM-06 Drive Side Bearing Temp,PM-06 Non-Drive Side Bearing Temp,FA-54 U Winding Temp,FA-54 V Winding Temp,FA-54 W Winding Temp,FA-54 Drive Side Bearing Temp,FA-54 Non-Drive Side Bearing Temp,LU-06 Grease Pump Enabled,LU-06 Grease Pump Run Status,LU-06 Grease Pump System Fault Status,LU-06 Grease Pump Min Since Last Cycle,LU-06 Grease Pump Run Time (Min),BC-88 TPH FB,BC-88 TPH SP,BC-88 Speed %,PM-06 Amps,FA-54 Amps,SI-23 Tons,PM-06 Tons SP,CW-13 RPM,CW-14 RPM,CW-15 RPM,CW-16 RPM,CW-17 RPM,CW-18 RPM,CW-13 Power FB,CW-14 Power FB,CW-15 Power FB,CW-16 Power FB,CW-17 Power FB,CW-18 Power FB,BC-88 Feed Rate,BC-88 Feed Rate By SI-23 Weight\n';
+    var pm7_headers = `"Date",Start Time, End Time,"Area 6/Ecutec/PCC1/PCC1_p1160_ACT_V_OUT_ABS","Area 6/Ecutec/PCC1/PCC1_p3021_SPD_DEV_VAL","Area 6/Ecutec/PCC1/PCC1_p3421_SPD_DEV_VAL","Area 6/Ecutec/PCC1/PM607_AMPS_SUM"\n`;
+    var pm8_headers = `"Date",Start Time,End Time,"Area 6/Ecutec/PCC2/PCC2_p1160_ACT_V_OUT_ABS","Area 6/Ecutec/PCC2/PCC2_p3021_SPD_DEV_VAL","Area 6/Ecutec/PCC2/PM608_AMPS_SUM"\n`;
     switch (machine_id) {
         case 'PM03':
             return pm3_headers;
@@ -25,6 +34,10 @@ function getHeaders(machine_id) {
             return pm5_headers;
         case 'PM06':
             return pm6_headers;
+        case 'PM607':
+            return pm7_headers;
+        case 'PM608':
+            return pm8_headers;
         default:
             return '';
     }
@@ -34,7 +47,7 @@ function checkRemoveHeaders(data = []) {
     let d_len = data.length;
     if (d_len > 0) {
         while (true) {
-            let crow = data[0];
+            let crow = fixCSV(data[0]);
             let dt = new Date(crow[0]);
             if (isNaN(dt)) {
                 data.shift();
@@ -65,11 +78,13 @@ function fileSelectionObserver(input) {
     let max_date = '';
     let min_date = '';
     for (let file of input.files) {
+        if(!file_regex_pattern.test(file.name)) continue;
         let sp = file.name.split('_');
         let name = sp[0];
         if(!acceptable_machines.includes(name)) continue;
         let date = fileDateParser(sp[1]);
-	    if(date == 'log') continue;
+        if(date.includes('log')) continue;
+        
         if (!(max_date && min_date)) max_date = min_date = date;
         else {
             if (date > max_date) max_date = date;
@@ -101,7 +116,7 @@ function fileSelectionObserver(input) {
 
 function listFilesToProcess(input,from,to){
     for (let file of input.files) {
-        if (file.name.includes(active_machine)){
+        if (file.name.includes(active_machine) && file_regex_pattern.test(file.name)){
             if(from && to) {
                 let fdate = fileDateParser(file.name.split('_')[1]);
                 if(fdate<=to && fdate>=from){
@@ -153,19 +168,29 @@ function parseCSVToJSON(text, omitFirstRow = false) {
         .map((element) => element.split(','));
 }
 
+function fixCSV(csvRow){
+    for(let i in csvRow){
+        csvRow[i] = csvRow[i].trim().replaceAll('"','').replaceAll("'","")
+    }
+    return csvRow;
+}
+
 function createTimeStampedDict(data) {
     let data_dict = {}
     let timestamps = []
-    let max = 0;
-    let min = 100000000000;
+    // let max = 0;
+    // let min = 100000000000;
     for (let d of data) {
+        if(d.length<3)break;
+        d = fixCSV(d);
         time = new Date(d[0] + " " + d[1]);
+        // console.log(time,d[0] + "-" + d[1])
         if (!time || isNaN(time)) break;
         time = parseInt(time.getTime() / 1000);
         // if (min > time) min = time;
         // if (time > max) max = time;
         timestamps.push(time)
-        data_dict[time] = d
+        data_dict[time] = d;
     }
     timestamps.sort();
     return [data_dict, timestamps];//, max, min];
@@ -180,6 +205,7 @@ function process(fObject, machine_id, pid) {
     document.querySelector('.modal').classList.remove('d-none');
 
     let p_el = document.getElementById(pid);
+    console.log(fObject.name);
     p_el.children[1].innerHTML = fObject.name;
 
     let reader = new FileReader();
@@ -199,15 +225,20 @@ function process(fObject, machine_id, pid) {
             let diff = timestamps[t] - current_stamp;
             if (diff <= filter) {
                 for (let i = 2; i < row.length; i++) {
-                    row[i] = parseFloat(row[i]) + parseFloat(result[timestamps[t]][i]);
+                    if(row[i])
+                        row[i] = parseFloat(row[i]) + parseFloat(result[timestamps[t]][i]);
                 }
                 end_time = result[timestamps[t]][1]
             } else {
-                row[1] += " - " + end_time;
                 for (let i = 2; i < row.length; i++) {
-                    row[i] /= counts;
-                    row[i] = row[i].toFixed(4)
+                    if(row[i]){
+                        row[i] /= counts;
+                        row[i] = row[i].toFixed(18);
+                    }
                 }
+                row.splice(2,0,end_time);
+                // row[1] += " - " + end_time;
+                
                 counts = 0;
                 output.push(row);
                 current_stamp = timestamps[t];
@@ -215,13 +246,19 @@ function process(fObject, machine_id, pid) {
                 end_time = row[1];
             }
         }
-        row[1] += " - " + end_time;
+        
+        //final batch----
         for (let i = 2; i < row.length; i++) {
-            row[i] /= counts;
-            row[i] = row[i].toFixed(4)
+            if(row[i]){
+                row[i] /= counts;
+                row[i] = row[i].toFixed(4)
+            }
         }
-
+        row.splice(2,0,end_time);
+        // row[1] += " - " + end_time;
         output.push(row);
+        output.reverse();// so that time is in ascending order
+        //final batch end---
 
         processed_data = processed_data.concat(output);
         semaphore++;
@@ -306,6 +343,7 @@ function downloadCSV(csv, filename) {
     var downloadLink;
 
     // CSV file
+    csv = csv.replaceAll('NaN','');
     csvFile = new Blob([csv], {
         type: "text/csv"
     });

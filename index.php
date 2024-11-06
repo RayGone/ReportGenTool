@@ -49,14 +49,6 @@
                 <div class="wrap">
                     <input name='filter' type='range' min=1 max=7200 style='width:100%;height:2em' oninput="updateDateRangeLabel(this)" value=300>
                 </div>
-                <script>
-                    function updateDateRangeLabel(range) {
-                        let v = parseInt(range.value);
-                        let m = parseInt(v / 60);
-                        let s = parseInt(((v / 60) - m) * 10);
-                        document.getElementById('agg-val').innerHTML = `${m}min ${s}s`;
-                    }
-                </script>
                 <nav class="alert alert-primary">
                     <div class="" href="#">&nbsp;&nbsp;Select Machine: &nbsp;&nbsp;&nbsp;<span id='sel-mac' class='dispaly-4 text-center'></span> </div>
                 </nav>
