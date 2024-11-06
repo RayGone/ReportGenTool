@@ -47,7 +47,7 @@ function checkRemoveHeaders(data = []) {
     let d_len = data.length;
     if (d_len > 0) {
         while (true) {
-            let crow = data[0];
+            let crow = fixCSV(data[0]);
             let dt = new Date(crow[0]);
             if (isNaN(dt)) {
                 data.shift();
@@ -168,19 +168,29 @@ function parseCSVToJSON(text, omitFirstRow = false) {
         .map((element) => element.split(','));
 }
 
+function fixCSV(csvRow){
+    for(let i in csvRow){
+        csvRow[i] = csvRow[i].trim().replaceAll('"','').replaceAll("'","")
+    }
+    return csvRow;
+}
+
 function createTimeStampedDict(data) {
     let data_dict = {}
     let timestamps = []
     // let max = 0;
     // let min = 100000000000;
     for (let d of data) {
+        if(d.length<3)break;
+        d = fixCSV(d);
         time = new Date(d[0] + " " + d[1]);
+        // console.log(time,d[0] + "-" + d[1])
         if (!time || isNaN(time)) break;
         time = parseInt(time.getTime() / 1000);
         // if (min > time) min = time;
         // if (time > max) max = time;
         timestamps.push(time)
-        data_dict[time] = d
+        data_dict[time] = d;
     }
     timestamps.sort();
     return [data_dict, timestamps];//, max, min];
@@ -195,6 +205,7 @@ function process(fObject, machine_id, pid) {
     document.querySelector('.modal').classList.remove('d-none');
 
     let p_el = document.getElementById(pid);
+    console.log(fObject.name);
     p_el.children[1].innerHTML = fObject.name;
 
     let reader = new FileReader();
@@ -214,15 +225,15 @@ function process(fObject, machine_id, pid) {
             let diff = timestamps[t] - current_stamp;
             if (diff <= filter) {
                 for (let i = 2; i < row.length; i++) {
-                    if(!row[i])
+                    if(row[i])
                         row[i] = parseFloat(row[i]) + parseFloat(result[timestamps[t]][i]);
                 }
                 end_time = result[timestamps[t]][1]
             } else {
                 for (let i = 2; i < row.length; i++) {
-                    if(!row[i]){
+                    if(row[i]){
                         row[i] /= counts;
-                        row[i] = row[i].toFixed(4);
+                        row[i] = row[i].toFixed(18);
                     }
                 }
                 row.splice(2,0,end_time);
@@ -235,17 +246,20 @@ function process(fObject, machine_id, pid) {
                 end_time = row[1];
             }
         }
+        
+        //final batch----
         for (let i = 2; i < row.length; i++) {
-            if(!row[i]){
+            if(row[i]){
                 row[i] /= counts;
                 row[i] = row[i].toFixed(4)
             }
         }
-        row.splice(2,0,end_time)
+        row.splice(2,0,end_time);
         // row[1] += " - " + end_time;
-
         output.push(row);
         output.reverse();// so that time is in ascending order
+        //final batch end---
+
         processed_data = processed_data.concat(output);
         semaphore++;
         p_el.children[2].innerHTML = semaphore;

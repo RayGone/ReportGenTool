@@ -4,3 +4,5 @@ ScriptFiles
 *.zip
 composer.*
 bootstrap*
+*.csv
+SampleData
